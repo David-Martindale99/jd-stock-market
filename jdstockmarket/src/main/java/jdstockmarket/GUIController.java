@@ -6,6 +6,27 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
+/**
+ * The {@code GUIController} class serves as the graphical user interface controller for interacting
+ * with a stock market API and managing a user's stock portfolio. It extends {@code JFrame} to provide
+ * the windowing components and manages instances of {@link StockMarketAPI} and {@link Portfolio} to 
+ * fetch live stock data and track the user's portfolio respectively.
+ *
+ * <p>This class utilizes a simple FlowLayout and provides fields for user input, buttons for 
+ * triggering actions, and text areas for displaying fetched stock data.
+ *
+ * @author David Martindale
+ * @author Jamshaid Ali
+ *
+ * @version 1.0 (17 October 2023)
+ *
+ * @see JFrame
+ * @see StockMarketAPI
+ * @see Portfolio
+ * @see <a href="https://open.umn.edu/opentextbooks/textbooks/java-java-java-object-oriented-problem-solving">
+ *      Morelli, R., & Walde, R. (2016). Java, Java, Java: Object-Oriented Problem Solving</a>
+ */
+
 public class GUIController extends JFrame {
     
     private static final long serialVersionUID = 1L;
@@ -42,7 +63,7 @@ public class GUIController extends JFrame {
                     String stockData = stockAPI.fetchLiveStockData(stockSymbol);
                     // Parsing the stockData and adding it to Portfolio can be done here
                     stockInfoArea.setText(stockData);
-                } catch (IOException ex) {
+                } catch (IOException ioe) {
                     stockInfoArea.setText("Error fetching stock data.");
                 }
             }
