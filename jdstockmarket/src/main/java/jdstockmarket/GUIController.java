@@ -37,11 +37,9 @@ public class GUIController extends JFrame {
    
     // Instance variables for objects needed to run GUI and API calls
 	private StockMarketAPI stockAPI;
-    private Portfolio userPortfolio;
     private JTextField stockSymbolField;
     private JTextArea stockInfoArea;
     private JButton fetchButton;
-    private JTextArea portfolioArea;
     
     // GUIController Constructor
     public GUIController() {
