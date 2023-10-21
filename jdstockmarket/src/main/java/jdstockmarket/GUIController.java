@@ -1,6 +1,10 @@
 package jdstockmarket;
 
 import javax.swing.*;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -33,15 +37,15 @@ public class GUIController extends JFrame {
    
     // Instance variables for objects needed to run GUI and API calls
 	private StockMarketAPI stockAPI;
-    //private Portfolio userPortfolio;
+    private Portfolio userPortfolio;
     private JTextField stockSymbolField;
     private JTextArea stockInfoArea;
     private JButton fetchButton;
+    private JTextArea portfolioArea;
     
     // GUIController Constructor
     public GUIController() {
         stockAPI = new StockMarketAPI();
-        //userPortfolio = new Portfolio();
         
         // Setup for GUI JFrame
         setTitle("Stock Market App");
@@ -68,6 +72,9 @@ public class GUIController extends JFrame {
                 }
             }
         });
+        
+        // ActionListener for add stock to portfolio button
+        // TODO
         
         // add elements to GUI JFrame
         add(new JLabel("Enter Stock Symbol: "));

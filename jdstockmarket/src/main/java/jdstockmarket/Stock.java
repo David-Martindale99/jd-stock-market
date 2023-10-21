@@ -26,16 +26,14 @@ public class Stock {
 	private String ticker;
 	private String compName;
 	private Double priceClosing;
-	private Double priceHigh;
-	private Double priceLow;
+	private int shares;
 	
-	public Stock(String ticker, String name, Double closing, Double high, Double low) {
+	public Stock(String ticker, String name, Double closing, int shares) {
 		
 		this.ticker = ticker;
 		this.compName = name;
 		this.priceClosing = closing;
-		this.priceHigh = high;
-		this.priceLow = low;
+		this.shares = shares;
 		
 	}
 
@@ -70,45 +68,30 @@ public class Stock {
 	/**
 	 * @return the priceClosing
 	 */
-	public Double getPriceClosing() {
+	public Double getPrice() {
 		return priceClosing;
 	}
 
 	/**
 	 * @param priceClosing the priceClosing to set
 	 */
-	public void setPriceClosing(Double priceClosing) {
+	public void setPrice(Double priceClosing) {
 		this.priceClosing = priceClosing;
 	}
 
 	/**
-	 * @return the priceHigh
+	 * @return the shares
 	 */
-	public Double getPriceHigh() {
-		return priceHigh;
+	public int getShares() {
+		return shares;
 	}
 
 	/**
-	 * @param priceHigh the priceHigh to set
+	 * @param shares the shares to set
 	 */
-	public void setPriceHigh(Double priceHigh) {
-		this.priceHigh = priceHigh;
+	public void setShares(int shares) {
+		this.shares = shares;
 	}
-
-	/**
-	 * @return the priceLow
-	 */
-	public Double getPriceLow() {
-		return priceLow;
-	}
-
-	/**
-	 * @param priceLow the priceLow to set
-	 */
-	public void setPriceLow(Double priceLow) {
-		this.priceLow = priceLow;
-	}
-	
 	
 
 }
