@@ -33,7 +33,6 @@ import java.io.IOException;
 
 public class GUIController extends JFrame {
     
-    private static final long serialVersionUID = 1L;
    
     // Instance variables for objects needed to run GUI and API calls
 	private StockMarketAPI stockAPI;
