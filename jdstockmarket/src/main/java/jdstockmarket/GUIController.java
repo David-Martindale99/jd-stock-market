@@ -58,13 +58,15 @@ public class GUIController extends JFrame {
         fetchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String stockSymbol = stockSymbolField.getText();
+                String stockSymbol = stockSymbolField.getText().toUpperCase();
                 try {
                     // Fetching stock data as a string
                     String stockData = stockAPI.fetchLiveStockData(stockSymbol);
                     // Parsing the string data into a JSONObject
                     JSONObject stockJSON = jsonHandler.parseJSON(stockData);
                     String mostRecentPrice;
+                    String todaysHigh;
+                    String todaysLow;
                     
                     /*
                      * The code logic below is wrapped in an 'if' statment so we can 
@@ -90,9 +92,20 @@ public class GUIController extends JFrame {
 						String latestTimeStamp = timeStamps.get(timeStamps.size() - 1);
 						JSONObject latestData = timeSeries.getJSONObject(latestTimeStamp);
 						mostRecentPrice = latestData.getString("4. close");
+						todaysHigh = latestData.getString("2. high");
+						todaysLow = latestData.getString("3. low");
+						
+						// TODO fix this formatting using string builder or better formatting 
+						// (We'll do that together)
+						// TODO the logic is also wrong right now if you invetigate the output 
+						// even though the code runs
 						
 						// Displaying the most recent / closing price
-	                    stockInfoArea.setText(stockSymbol + ": Current price $" + mostRecentPrice);  
+	                    stockInfoArea.setText(stockSymbol + ":\n" 
+	                    		+ " - Current price $" + mostRecentPrice + "\n"
+	                    		+ " - Today's high: " + todaysHigh + "\n" 
+	                    		+ " - Today's low: " +  todaysLow + "\n");
+	                    
 					} else {
 			            stockInfoArea.setText("Time Series data not available for " + stockSymbol);
 			        }
