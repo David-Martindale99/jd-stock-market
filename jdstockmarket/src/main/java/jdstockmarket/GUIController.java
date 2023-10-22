@@ -64,25 +64,54 @@ public class GUIController extends JFrame {
                     String stockData = stockAPI.fetchLiveStockData(stockSymbol);
                     // Parsing the string data into a JSONObject
                     JSONObject stockJSON = jsonHandler.parseJSON(stockData);
-                    // Extracting the "Time Series (5min)" JSONObject from the stock data
-                    JSONObject timeSeries = jsonHandler.getValue(stockJSON, "Time Series (5min)");
+                    String mostRecentPrice;
                     
-                    // Obtaining the keys (timestamps) and sorting them
-                    ArrayList<String> timeStamps = new ArrayList<>(timeSeries.keySet());
-                    Collections.sort(timeStamps);
-                    
-                    // If the stock market is still open, get the most recent stock price
-                    String latestTimeStamp = timeStamps.get(timeStamps.size() - 1);
-                    JSONObject latestData = timeSeries.getJSONObject(latestTimeStamp);
-                    String mostRecentPrice = latestData.getString("4. close");
-                    
-                    // Displaying the most recent / closing price
-                    stockInfoArea.setText(stockSymbol + ": Current price $" + mostRecentPrice);       
-                    
-                } catch (IOException ioe) {
-                    stockInfoArea.setText("Error fetching or parsing stock data.");
-                }
-            }
+                    /*
+                     * The code logic below is wrapped in an 'if' statment so we can 
+                     * Check for Null or Missing Keys: Before attempting to access a 
+                     * key in a JSONObject, you can use the has method to check if the 
+                     * key actually exists. This will prevent JSONException from being 
+                     * thrown
+                     * 
+                     * notice in the 'if' condition the has() method that checks the JSONObject
+                     * for a key, this method is made avaliable to us through the JSONObject class
+                     * of stockJSON varibale has been declaired as above
+                    */
+					if (stockJSON.has("Time Series (5min)")) {
+						
+						// Extracting the "Time Series (5min)" JSONObject from the stock data
+						JSONObject timeSeries = jsonHandler.getValue(stockJSON, "Time Series (5min)");
+						
+						// Obtaining the keys (timestamps) and sorting them
+						ArrayList<String> timeStamps = new ArrayList<>(timeSeries.keySet());
+						Collections.sort(timeStamps);
+						
+						// If the stock market is still open, get the most recent stock price
+						String latestTimeStamp = timeStamps.get(timeStamps.size() - 1);
+						JSONObject latestData = timeSeries.getJSONObject(latestTimeStamp);
+						mostRecentPrice = latestData.getString("4. close");
+						
+						// Displaying the most recent / closing price
+	                    stockInfoArea.setText(stockSymbol + ": Current price $" + mostRecentPrice);  
+					} else {
+			            stockInfoArea.setText("Time Series data not available for " + stockSymbol);
+			        }
+					
+				/*
+				 * 	Use multiple catch blocks to handle different types of exceptions separately.
+				 *  This will allow you to provide more informative error messages. This includes 
+				 *  User Feedback --> Provide feedback to the user in the GUI when an error occurs, 
+				 *  so they understand what went wrong.
+				 */
+					
+			    } catch (IOException ioe) {
+			        stockInfoArea.setText("Error fetching or parsing stock data.");
+			    } catch (JSONException je) {
+			        stockInfoArea.setText("JSON parsing error: " + je.getMessage());
+			    } catch (Exception ex) {
+			        stockInfoArea.setText("An unexpected error occurred...that sucks");
+			    }
+			}
         });
         
         // ActionListener for add stock to portfolio button
