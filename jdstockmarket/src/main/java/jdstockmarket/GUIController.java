@@ -1,12 +1,15 @@
 package jdstockmarket;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import org.json.*;
 import java.io.IOException;
-import java.util.*;
 
 /**
  * The {@code GUIController} class provides a graphical user interface (GUI) for interacting
@@ -27,12 +30,15 @@ public class GUIController extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	
+	// Named constants
+	private static final Color BORDER_COLOR = new Color(128, 0, 32);  // Burgundy
+	
 	// Instance variables for managing GUI and API calls
     private StockMarketAPI stockAPI;
     private JTextField stockSymbolField;
     private JTextArea stockInfoArea;
     private JButton fetchButton;
-    private JSONHandler jsonHandler;  
+    private StockJSONHandler jsonHandler;  
     
     /**
      * Constructor for GUIController.
@@ -46,95 +52,89 @@ public class GUIController extends JFrame {
         // Setup for GUI JFrame
         setTitle("Stock Market App");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new FlowLayout());
+        setLayout(new BorderLayout());
         
-        // Instantiate objects for GUI elements to add to JFrame
+        
+        /*
+         * In GUI setup below,I used GridBagLayout for the westPanel to have more 
+         * control over the positioning and size of each component. 
+         * 
+         * you can add a border around the JTextArea using the setBorder method. You 
+         * can use various types of borders provided by Swing, such as LineBorder
+         * 
+         * You can specify custom colors using the Color class in Java's AWT package. 
+         * The Color class allows you to define a color using its RGB (Red, Green, Blue) 
+         * components.
+         */
+        
+        // Create a panel for the west components and set its layout to GridBagLayout
+        JPanel westPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        
+        // Add an empty border to create a cushion around the westPanel
+        westPanel.setBorder(new EmptyBorder(10, 10, 10, 10));  // top, left, bottom, right
+        
+        // Add JLabel centered above the JTextField
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        westPanel.add(new JLabel("Enter Stock Symbol: "), gbc);
+
+        // Add JTextField
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         stockSymbolField = new JTextField(10);
+        westPanel.add(stockSymbolField, gbc);
+
+        // Add JButton centered
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        fetchButton = new JButton("Fetch Stock Info");
+        westPanel.add(fetchButton, gbc);
+
+        // Add the west panel to the main frame
+        add(westPanel, BorderLayout.WEST);
+
+        // Create and add the stockInfoArea to the main frame
         stockInfoArea = new JTextArea(10, 30);
         stockInfoArea.setEditable(false);
-        fetchButton = new JButton("Fetch Stock Info");
+        add(new JScrollPane(stockInfoArea), BorderLayout.CENTER);
         
-        // ActionListener for fetchButton 
+        // Add a line border around the JTextArea
+        stockInfoArea.setBorder(new LineBorder(BORDER_COLOR, 5));  // color, thickness
+        
+        
+
+        /*
+         *  ActionListener for fetchButton 
+         */
         fetchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String stockSymbol = stockSymbolField.getText().toUpperCase();
                 try {
-                    // Fetching stock data as a string
-                    String stockData = stockAPI.fetchLiveStockData(stockSymbol);
-                    // Parsing the string data into a JSONObject
-                    JSONObject stockJSON = jsonHandler.parseJSON(stockData);
-                    String mostRecentPrice;
-                    String todaysHigh;
-                    String todaysLow;
                     
-                    /*
-                     * The code logic below is wrapped in an 'if' statment so we can 
-                     * Check for Null or Missing Keys: Before attempting to access a 
-                     * key in a JSONObject, you can use the has method to check if the 
-                     * key actually exists. This will prevent JSONException from being 
-                     * thrown
-                     * 
-                     * notice in the 'if' condition the has() method that checks the JSONObject
-                     * for a key, this method is made avaliable to us through the JSONObject class
-                     * of stockJSON varibale has been declaired as above
-                    */
-					if (stockJSON.has("Time Series (5min)")) {
-						
-						// Extracting the "Time Series (5min)" JSONObject from the stock data
-						JSONObject timeSeries = jsonHandler.getValue(stockJSON, "Time Series (5min)");
-						
-						// Obtaining the keys (timestamps) and sorting them
-						ArrayList<String> timeStamps = new ArrayList<>(timeSeries.keySet());
-						Collections.sort(timeStamps);
-						
-						// If the stock market is still open, get the most recent stock price
-						String latestTimeStamp = timeStamps.get(timeStamps.size() - 1);
-						JSONObject latestData = timeSeries.getJSONObject(latestTimeStamp);
-						mostRecentPrice = latestData.getString("4. close");
-						todaysHigh = latestData.getString("2. high");
-						todaysLow = latestData.getString("3. low");
-						
-						// TODO fix this formatting using string builder or better formatting 
-						// (We'll do that together)
-						// TODO the logic is also wrong right now if you invetigate the output 
-						// even though the code runs
-						
-						// Displaying the most recent / closing price
-	                    stockInfoArea.setText(stockSymbol + ":\n" 
-	                    		+ " - Current price $" + mostRecentPrice + "\n"
-	                    		+ " - Today's high: " + todaysHigh + "\n" 
-	                    		+ " - Today's low: " +  todaysLow + "\n");
-	                    
-					} else {
-			            stockInfoArea.setText("Time Series data not available for " + stockSymbol);
-			        }
-					
+                	JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
+                    String displayText = jsonHandler.displayStockInfo(stockJSON, stockSymbol);
+                    stockInfoArea.setText(displayText);
+ 
 				/*
 				 * 	Use multiple catch blocks to handle different types of exceptions separately.
 				 *  This will allow you to provide more informative error messages. This includes 
-				 *  User Feedback --> Provide feedback to the user in the GUI when an error occurs, 
-				 *  so they understand what went wrong.
-				 */
-					
+				 *  User Feedback
+				*/	
 			    } catch (IOException ioe) {
 			        stockInfoArea.setText("Error fetching or parsing stock data.");
 			    } catch (JSONException je) {
 			        stockInfoArea.setText("JSON parsing error: " + je.getMessage());
 			    } catch (Exception ex) {
-			        stockInfoArea.setText("An unexpected error occurred...that sucks");
+			        stockInfoArea.setText("An unexpected error occurred...that sucks [Exception] > " + ex);
 			    }
 			}
         });
         
         // ActionListener for add stock to portfolio button
         // TODO
-        
-        // Adding elements to GUI JFrame
-        add(new JLabel("Enter Stock Symbol: "));
-        add(stockSymbolField);
-        add(fetchButton);
-        add(new JScrollPane(stockInfoArea));
         
         // Finalizing GUI setup
         pack();
