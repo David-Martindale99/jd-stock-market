@@ -8,8 +8,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import org.json.*;
 import java.io.IOException;
+import org.json.*;
 
 /**
  * The {@code GUIController} class provides a graphical user interface (GUI) for interacting
@@ -53,93 +53,95 @@ public class GUIController extends JFrame {
         setTitle("Stock Market App");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
-        
-        
-        /*
-         * In GUI setup below,I used GridBagLayout for the westPanel to have more 
-         * control over the positioning and size of each component. 
-         * 
-         * you can add a border around the JTextArea using the setBorder method. You 
-         * can use various types of borders provided by Swing, such as LineBorder
-         * 
-         * You can specify custom colors using the Color class in Java's AWT package. 
-         * The Color class allows you to define a color using its RGB (Red, Green, Blue) 
-         * components.
-         */
-        
+
         // Create a panel for the west components and set its layout to GridBagLayout
         JPanel westPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        
-        // Add an empty border to create a cushion around the westPanel
         westPanel.setBorder(new EmptyBorder(10, 10, 10, 10));  // top, left, bottom, right
-        
-        // Add JLabel centered above the JTextField
+
+        // Add JLabel and JTextField for Stock Symbol
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.CENTER;
         westPanel.add(new JLabel("Enter Stock Symbol: "), gbc);
-
-        // Add JTextField
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         stockSymbolField = new JTextField(10);
         westPanel.add(stockSymbolField, gbc);
 
-        // Add JButton centered
+        // Add JButton for Fetching Stock Info
         gbc.gridy = 2;
         gbc.fill = GridBagConstraints.NONE;
         fetchButton = new JButton("Fetch Stock Info");
         westPanel.add(fetchButton, gbc);
 
+        // Add JTextField and JButton for Adding Stock
+        gbc.gridy = 3;
+        JTextField sharesField = new JTextField(3);
+        westPanel.add(sharesField, gbc);
+        gbc.gridy = 4;
+        JButton addStockButton = new JButton("Add Stock");
+        westPanel.add(addStockButton, gbc);
+
         // Add the west panel to the main frame
         add(westPanel, BorderLayout.WEST);
 
-        // Create and add the stockInfoArea to the main frame
+        // Create and add the stockInfoArea
         stockInfoArea = new JTextArea(10, 30);
         stockInfoArea.setEditable(false);
-        add(new JScrollPane(stockInfoArea), BorderLayout.CENTER);
-        
-        // Add a line border around the JTextArea
         stockInfoArea.setBorder(new LineBorder(BORDER_COLOR, 5));  // color, thickness
-        
-        
+        add(new JScrollPane(stockInfoArea), BorderLayout.CENTER);
 
-        /*
-         *  ActionListener for fetchButton 
-         */
+        // ActionListener for fetchButton
         fetchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String stockSymbol = stockSymbolField.getText().toUpperCase();
-                try {
-                    
-                	JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
-                    String displayText = jsonHandler.displayStockInfo(stockJSON, stockSymbol);
-                    stockInfoArea.setText(displayText);
- 
-				/*
-				 * 	Use multiple catch blocks to handle different types of exceptions separately.
-				 *  This will allow you to provide more informative error messages. This includes 
-				 *  User Feedback
-				*/	
-			    } catch (IOException ioe) {
-			        stockInfoArea.setText("Error fetching or parsing stock data.");
-			    } catch (JSONException je) {
-			        stockInfoArea.setText("JSON parsing error: " + je.getMessage());
-			    } catch (Exception ex) {
-			        stockInfoArea.setText("An unexpected error occurred...that sucks [Exception] > " + ex);
-			    }
-			}
+            	 String stockSymbol = stockSymbolField.getText().toUpperCase();
+                 try {
+                     
+                 	JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
+                     String displayText = jsonHandler.displayStockInfo(stockJSON, stockSymbol);
+                     stockInfoArea.setText(displayText);
+  
+ 				/*
+ 				 * 	Use multiple catch blocks to handle different types of exceptions separately.
+ 				 *  This will allow you to provide more informative error messages. This includes 
+ 				 *  User Feedback
+ 				*/	
+ 			    } catch (IOException ioe) {
+ 			        stockInfoArea.setText("Error fetching or parsing stock data." + ioe.getMessage());
+ 			    } catch (JSONException je) {
+ 			        stockInfoArea.setText("JSON parsing error: " + je.getMessage());
+ 			    } catch (Exception ex) {
+ 			        stockInfoArea.setText("An unexpected error occurred...that sucks [Exception] > " + ex.getMessage());
+ 			    }
+            }
         });
-        
-        // ActionListener for add stock to portfolio button
-        // TODO
-        
+
+        // ActionListener for addStockButton
+        addStockButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String stockSymbol = stockSymbolField.getText().toUpperCase();
+                String sharesText = sharesField.getText();
+                int shares = 0;
+                try {
+                    shares = Integer.parseInt(sharesText);
+                    
+                    // TODO: Add logic to handle adding stock to portfolio
+                    
+                    stockInfoArea.append("\nAdded " + shares + " shares of " + stockSymbol);
+                } catch (NumberFormatException ex) {
+                    stockInfoArea.append("\nInvalid number of shares");
+                }
+            }
+        });
+
         // Finalizing GUI setup
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
+        
     }
     
     /**
