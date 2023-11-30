@@ -24,14 +24,12 @@ package jdstockmarket;
 public class Stock {
 	
 	private String ticker;
-	private String compName;
 	private Double priceClosing;
 	private int shares;
 	
-	public Stock(String ticker, String name, Double closing, int shares) {
+	public Stock(String ticker, Double closing, int shares) {
 		
 		this.ticker = ticker;
-		this.compName = name;
 		this.priceClosing = closing;
 		this.shares = shares;
 		
@@ -51,19 +49,6 @@ public class Stock {
 		this.ticker = ticker;
 	}
 
-	/**
-	 * @return the compName
-	 */
-	public String getCompName() {
-		return compName;
-	}
-
-	/**
-	 * @param compName the compName to set
-	 */
-	public void setCompName(String compName) {
-		this.compName = compName;
-	}
 
 	/**
 	 * @return the priceClosing

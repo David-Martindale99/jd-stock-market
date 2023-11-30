@@ -11,14 +11,25 @@ public class Portfolio {
 	private HashMap<String, Stock> stocks;
 	
 	// TODO is this a good constructor? idk
-	public Portfolio() {
+	public Portfolio(HashMap<String, Stock> stocks) {
 	
 		this.stocks = new HashMap<>();
 		
 	}
-	
-	//TODO methods for this class
 
-	
+	/**
+	 * @return the stocks
+	 */
+	public HashMap<String, Stock> getStocks() {
+		return stocks;
+	}
+
+	/**
+	 * @param stocks the stocks to set
+	 */
+	public void setStocks(HashMap<String, Stock> stocks) {
+		this.stocks = stocks;
+	}
+
 	
 }

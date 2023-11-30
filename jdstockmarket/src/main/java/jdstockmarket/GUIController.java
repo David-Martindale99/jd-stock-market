@@ -9,6 +9,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+
 import org.json.*;
 
 /**
@@ -32,6 +35,8 @@ public class GUIController extends JFrame {
 	
 	// Named constants
 	private static final Color BORDER_COLOR = new Color(128, 0, 32);  // Burgundy
+
+	protected static final String TIME_SERIES_KEY = "Time Series (5min)";
 	
 	// Instance variables for managing GUI and API calls
     private StockMarketAPI stockAPI;
@@ -124,16 +129,41 @@ public class GUIController extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String stockSymbol = stockSymbolField.getText().toUpperCase();
                 String sharesText = sharesField.getText();
-                int shares = 0;
+                
                 try {
-                    shares = Integer.parseInt(sharesText);
+                    int shares = Integer.parseInt(sharesText);
                     
-                    // TODO: Add logic to handle adding stock to portfolio
                     
-                    stockInfoArea.append("\nAdded " + shares + " shares of " + stockSymbol);
+                    JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
+                    
+                    if (stockJSON.has("Time Series (5min)")) {
+                        
+                        ArrayList<String> timeStamps = new ArrayList<>(stockJSON.keySet());
+                        Collections.sort(timeStamps);
+                        
+                        String latestTimeStamp = timeStamps.get(timeStamps.size() - 1);
+                        JSONObject latestData = stockJSON.getJSONObject(latestTimeStamp);
+                        Double mostRecentPrice = Double.parseDouble(latestData.getString("4. close"));
+                        
+                        Stock stock = new Stock(stockSymbol, mostRecentPrice, shares);
+                        
+                        PortfolioManager.updatePortfolio(stock);
+                        
+                        stockInfoArea.append("\nAdded " + shares + " shares of " + stockSymbol);
+
+                        
+                    } else {
+                        stockInfoArea.setText("Time Series data not available for " + stockSymbol);
+                    }
+                    
+                    
                 } catch (NumberFormatException ex) {
                     stockInfoArea.append("\nInvalid number of shares");
-                }
+                } catch (JSONException je) {
+                	stockInfoArea.append("Exeption" + je.getMessage());
+                } catch (IOException ioe) {
+					ioe.printStackTrace();
+				}
             }
         });
 
