@@ -60,6 +60,7 @@ public class StockJSONHandler implements JSONHandler {
     public JSONObject fetchStockData(StockMarketAPI stockAPI, String stockSymbol) throws IOException {
         String stockData = stockAPI.fetchLiveStockData(stockSymbol);
         return parseJSON(stockData);
+        
     }
 
     public String displayStockInfo(JSONObject stockJSON, String stockSymbol) {
@@ -86,8 +87,10 @@ public class StockJSONHandler implements JSONHandler {
             String todaysLow = latestData.getString("3. low");
             
             return formatStockInfo(stockSymbol, mostRecentPrice, todaysHigh, todaysLow);
+        } else if (stockJSON.has("Information")){
+            return "API request limit reached today...";
         } else {
-            return "Time Series data not available for " + stockSymbol;
+        	return "Other errod with StockJSONHandler in displayStockInfo method";
         }
     }
 
