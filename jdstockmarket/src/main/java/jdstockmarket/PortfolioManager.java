@@ -1,10 +1,9 @@
 package jdstockmarket;
 
 import java.io.*;
-import java.util.HashMap;
+import java.util.TreeMap;
 
 
-// TODO Fix so file is updated and not overwirtten each time
 public class PortfolioManager {
 
     private static final String FILE_NAME = "portfolio.txt";
@@ -14,10 +13,11 @@ public class PortfolioManager {
         
         Stock existingStock = portfolio.getStocks().get(newStock.getTicker());
         if (existingStock != null) {
+        	// Update existing stock with new shares
         	int updateShares = existingStock.getShares() + newStock.getShares();
         	existingStock.setShares(updateShares);
         } else {
-        	// Update the portfolio with the new stock
+        	// Update the portfolio with the new stock if stock not there
         	portfolio.getStocks().put(newStock.getTicker(), newStock);
         }
 
@@ -28,10 +28,10 @@ public class PortfolioManager {
 
     private static Portfolio readPortfolioFromFile() {
         File file = new File(FILE_NAME);
-        HashMap<String, Stock> stocks = new HashMap<>();
+        TreeMap<String, Stock> stocks = new TreeMap<>();
 
         if (!file.exists() || file.length() == 0) {
-            return new Portfolio(new HashMap<>()); 
+            return new Portfolio(new TreeMap<>()); 
         }
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -49,7 +49,7 @@ public class PortfolioManager {
             return new Portfolio(stocks);
         } catch (IOException e) {
             e.printStackTrace();
-            return new Portfolio(new HashMap<>()); 
+            return new Portfolio(new TreeMap<>()); 
         }
     }
 

@@ -1,6 +1,6 @@
 package jdstockmarket;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 
 
 
@@ -8,26 +8,26 @@ public class Portfolio {
 
 	// Instance variables
 	// Idk about these, we'll see i guess
-	private HashMap<String, Stock> stocks;
+	private TreeMap<String, Stock> stocks;
 	
 	// TODO is this a good constructor? idk
-	public Portfolio(HashMap<String, Stock> stocks) {
+	public Portfolio(TreeMap<String, Stock> stocks) {
 	
-		this.stocks = new HashMap<>();
+		this.stocks = stocks;
 		
 	}
 
 	/**
 	 * @return the stocks
 	 */
-	public HashMap<String, Stock> getStocks() {
+	public TreeMap<String, Stock> getStocks() {
 		return stocks;
 	}
 
 	/**
 	 * @param stocks the stocks to set
 	 */
-	public void setStocks(HashMap<String, Stock> stocks) {
+	public void setStocks(TreeMap<String, Stock> stocks) {
 		this.stocks = stocks;
 	}
 

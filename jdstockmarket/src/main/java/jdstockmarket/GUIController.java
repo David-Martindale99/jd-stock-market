@@ -9,8 +9,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import org.json.*;
 
@@ -35,13 +38,15 @@ public class GUIController extends JFrame {
 	
 	// Named constants
 	private static final Color BORDER_COLOR = new Color(128, 0, 32);  // Burgundy
-
+	private static final Color BORDER_COLOR_2 = new Color(50, 50, 255);  // Blue
 	protected static final String TIME_SERIES_KEY = "Time Series (5min)";
+	private static final String FILE_NAME = "portfolio.txt";
 	
 	// Instance variables for managing GUI and API calls
     private StockMarketAPI stockAPI;
     private JTextField stockSymbolField;
     private JTextArea stockInfoArea;
+    private JTextArea portfolioArea;
     private JButton fetchButton;
     private StockJSONHandler jsonHandler;  
     
@@ -63,7 +68,7 @@ public class GUIController extends JFrame {
         JPanel westPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         westPanel.setBorder(new EmptyBorder(10, 10, 10, 10));  // top, left, bottom, right
-
+        
         // Add JLabel and JTextField for Stock Symbol
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -96,6 +101,12 @@ public class GUIController extends JFrame {
         stockInfoArea.setEditable(false);
         stockInfoArea.setBorder(new LineBorder(BORDER_COLOR, 5));  // color, thickness
         add(new JScrollPane(stockInfoArea), BorderLayout.CENTER);
+        
+        // Create Portfolio display area
+        portfolioArea = new JTextArea(10, 30);
+        portfolioArea.setEditable(false);
+        portfolioArea.setBorder(new LineBorder(BORDER_COLOR_2, 5));  // color, thickness
+        add(new JScrollPane(portfolioArea), BorderLayout.EAST); // Adjust layout as needed
 
         // ActionListener for fetchButton
         fetchButton.addActionListener(new ActionListener() {
@@ -104,15 +115,10 @@ public class GUIController extends JFrame {
             	 String stockSymbol = stockSymbolField.getText().toUpperCase();
                  try {
                      
-                 	JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
+                 	 JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
                      String displayText = jsonHandler.displayStockInfo(stockJSON, stockSymbol);
                      stockInfoArea.setText(displayText);
   
- 				/*
- 				 * 	Use multiple catch blocks to handle different types of exceptions separately.
- 				 *  This will allow you to provide more informative error messages. This includes 
- 				 *  User Feedback
- 				*/	
  			    } catch (IOException ioe) {
  			        stockInfoArea.setText("Error fetching or parsing stock data." + ioe.getMessage());
  			    } catch (JSONException je) {
@@ -129,38 +135,35 @@ public class GUIController extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String stockSymbol = stockSymbolField.getText().toUpperCase();
                 String sharesText = sharesField.getText();
+                int shares = Integer.parseInt(sharesText);
                 
                 try {
-                    int shares = Integer.parseInt(sharesText);
-                    
-                    
+                	
                     JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
                     
                     if (stockJSON.has("Time Series (5min)")) {
-                        
-                        ArrayList<String> timeStamps = new ArrayList<>(stockJSON.keySet());
+                    	
+                        JSONObject timeSeries = stockJSON.getJSONObject(TIME_SERIES_KEY);
+                        ArrayList<String> timeStamps = new ArrayList<>(timeSeries.keySet());
                         Collections.sort(timeStamps);
-                        
-                        String latestTimeStamp = timeStamps.get(timeStamps.size() - 1);
-                        JSONObject latestData = stockJSON.getJSONObject(latestTimeStamp);
+                        String latestTimeStamp = timeStamps.get(timeStamps.size() - 1); 
+                        JSONObject latestData = timeSeries.getJSONObject(latestTimeStamp);
                         Double mostRecentPrice = Double.parseDouble(latestData.getString("4. close"));
-                        
                         Stock stock = new Stock(stockSymbol, mostRecentPrice, shares);
                         
                         PortfolioManager.updatePortfolio(stock);
-                        
                         stockInfoArea.append("\nAdded " + shares + " shares of " + stockSymbol);
+                        updatePortfolioDisplay();
 
-                        
                     } else {
-                        stockInfoArea.setText("Time Series data not available for " + stockSymbol);
+                        stockInfoArea.setText("\nTime Series data not available for " + stockSymbol + "right now");
                     }
                     
                     
                 } catch (NumberFormatException ex) {
                     stockInfoArea.append("\nInvalid number of shares");
                 } catch (JSONException je) {
-                	stockInfoArea.append("Exeption" + je.getMessage());
+                	stockInfoArea.append("\nExeption (Action Listener) " + je.getMessage());
                 } catch (IOException ioe) {
 					ioe.printStackTrace();
 				}
@@ -173,6 +176,33 @@ public class GUIController extends JFrame {
         setVisible(true);
         
     }
+    
+    // TODO format the info in the portfolio area
+    public void updatePortfolioDisplay() {
+        StringBuilder formattedContent = new StringBuilder();
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(FILE_NAME));
+            for (String line : lines) {
+                String[] parts = line.split(",");
+                if (parts.length == 3) {
+                    String ticker = parts[0];
+                    String price = parts[1];
+                    String shares = parts[2];
+                    Double totalValue = Double.parseDouble(shares) * Double.parseDouble(price);
+                    formattedContent.append("Ticker: ").append(ticker)
+                                    .append(",  Price: $").append(price)
+                                    .append(",  Shares: ").append(shares)
+                                    .append("\nStock Value: $" + totalValue)
+                                    .append("\n");
+                }
+            }
+            portfolioArea.setText(formattedContent.toString());
+        } catch (IOException ioe) {
+            portfolioArea.setText("Error loading portfolio data...\n");
+            portfolioArea.append(ioe.getMessage());
+        }
+    }
+
     
     /**
      * Entry point of the application.
