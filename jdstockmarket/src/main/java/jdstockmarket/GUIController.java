@@ -236,10 +236,13 @@ public class GUIController extends JFrame {
     }
 
     private void addStock(String sharesText) {
-            updatePortfolioDisplay();
-            
             try {
             	String stockSymbol = stockSymbolField.getText().toUpperCase();
+            	
+            	if (stockSymbol.isBlank()) {
+            		stockInfoArea.setText("  Invalid Input: Please enter a stock ticker\n");
+            	}
+            	
                 JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
                 int shares = Integer.parseInt(sharesText);
                 
@@ -254,20 +257,20 @@ public class GUIController extends JFrame {
                     Stock stock = new Stock(stockSymbol, mostRecentPrice, shares);
                     
                     PortfolioManager.updatePortfolio(stock);
-                    stockInfoArea.append("\n Added " + shares + " shares of " + stockSymbol);
+                    stockInfoArea.append("  Added " + shares + " shares of " + stockSymbol + "\n");
                     updatePortfolioDisplay();
 
                 } else {
-                    stockInfoArea.setText("\n Time Series data not available for " + stockSymbol + " right now");
+                    stockInfoArea.setText("  Time Series data not available for " + stockSymbol + " right now");
                 }
                 
                 
             } catch (NumberFormatException ex) {
-                stockInfoArea.append("\n Invalid number of shares");
+                stockInfoArea.append("  Invalid input: please enter a number of shares\n");
             } catch (JSONException je) {
-            	stockInfoArea.setText("\n Exeption (Action Listener) " + je.getMessage());
+            	stockInfoArea.setText("  Exeption (Action Listener): " + je.getMessage());
             } catch (IOException ioe) {
-				stockInfoArea.append("\n Add Stock: Invalid Input" + ioe.getMessage());;
+				stockInfoArea.append("  Add Stock: IOException: " + ioe.getMessage() + "\n");;
 			}
     }
 

@@ -90,10 +90,13 @@ public class StockJSONHandler implements JSONHandler {
         } else if (stockJSON.has("Information")){        
             return " API request limit reached today...\n";
         } else if (stockJSON.keySet().isEmpty()) {
-        	return " ERROR: API returned empty object";
+        	return " ERROR: API returned empty object\n";
+        } else if (stockJSON.has("Error Message")){
+        	System.out.println(stockJSON);
+        	return "  Invalid API call, please try again\n";
         } else {
         	System.out.println(stockJSON);
-        	return " Other error with StockJSONHandler in displayStockInfo method\n";
+        	return "  ERROR: error with displayStockInfo in StockJSONHandler\n";
         }
     }
 
