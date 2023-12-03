@@ -66,7 +66,7 @@ public class StockMarketAPI {
         try (Response response = client.newCall(request).execute()) {
             // Check for a successful response, throw an IOException for an unsuccessful response
             if (!response.isSuccessful()) {
-                throw new IOException("Error: Response failed..." + response);
+                throw new IOException("Error: Response failed...\n" + response);
             }
             // Return the response body as a string
             return response.body().string();

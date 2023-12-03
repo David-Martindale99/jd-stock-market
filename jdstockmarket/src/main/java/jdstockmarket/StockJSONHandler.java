@@ -87,10 +87,13 @@ public class StockJSONHandler implements JSONHandler {
             String todaysLow = latestData.getString("3. low");
             
             return formatStockInfo(stockSymbol, mostRecentPrice, todaysHigh, todaysLow);
-        } else if (stockJSON.has("Information")){
-            return "API request limit reached today...";
+        } else if (stockJSON.has("Information")){        
+            return " API request limit reached today...\n";
+        } else if (stockJSON.keySet().isEmpty()) {
+        	return " ERROR: API returned empty object";
         } else {
-        	return "Other errod with StockJSONHandler in displayStockInfo method";
+        	System.out.println(stockJSON);
+        	return " Other error with StockJSONHandler in displayStockInfo method\n";
         }
     }
 

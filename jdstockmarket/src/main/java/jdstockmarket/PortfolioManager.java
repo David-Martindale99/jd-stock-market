@@ -1,6 +1,8 @@
 package jdstockmarket;
 
 import java.io.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.TreeMap;
 
 
@@ -38,13 +40,26 @@ public class PortfolioManager {
             // Read and parse the file content to reconstruct the Portfolio object
             String line;
             while ((line = reader.readLine()) != null) {
-                // Parse the line to create Stock objects and add them to the stocks map
-                // Example: AAPL,150.00,10
+            	
+            	// Check for and skip any empty lines
+            	if (line.trim().isEmpty()) {
+            		continue;
+            	}
+            	
                 String[] parts = line.split(",");
-                String ticker = parts[0];
-                double price = Double.parseDouble(parts[1]);
-                int shares = Integer.parseInt(parts[2]);
-                stocks.put(ticker, new Stock(ticker, price, shares));
+                
+                // Check to ensure that each line has the correct number of comma-separated values.
+                if (parts.length == 3) {
+                	// Parse the line to create Stock objects and add them to the stocks map
+                    // Example: AAPL,150.00,10
+					String ticker = parts[0];
+					double price = Double.parseDouble(parts[1]);
+					int shares = Integer.parseInt(parts[2]);
+					stocks.put(ticker, new Stock(ticker, price, shares));
+				} else {
+					System.out.println("Warning: Malformed line '" + line + "' in file. Expected format: Ticker,Price,Shares");
+				}
+                
             }
             return new Portfolio(stocks);
         } catch (IOException e) {
@@ -62,5 +77,15 @@ public class PortfolioManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    
+    // TODO imlement this method 
+    private static Set<String> collectTickersFromPortfolio(Portfolio portfolio) {
+    	return new HashSet<>(portfolio.getStocks().keySet());
+    }
+    
+    // TODO Implent this method
+    private static void updateStockPrices(Set<String> tickers) {
+    	
     }
 }
