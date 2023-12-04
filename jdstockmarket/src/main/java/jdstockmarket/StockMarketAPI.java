@@ -31,8 +31,8 @@ import java.io.IOException;
 public class StockMarketAPI {
 
     // Alpha Vantage API key for authentication
-    private static final String API_KEY = "AG1H5T16XJ3W5TS1";
-    // OkHttpClient instance for executing HTTP requests
+    private static final String API_KEY = "UTY1ZRK0IBFZH4DE";
+    // Http Client instance for executing HTTP requests
     private OkHttpClient client;
 
     /**

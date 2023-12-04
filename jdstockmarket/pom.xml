@@ -4,12 +4,10 @@
   <artifactId>jdstockmarket</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <description>Stock market application with live stock data and portfolio building</description>
-  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
-  
   <dependencies>
 	  
 	  <dependency>
@@ -17,6 +15,6 @@
 	    <artifactId>okhttp</artifactId>
 	    <version>4.11.0</version>
 	  </dependency>
-	  
+
   </dependencies>
 </project>

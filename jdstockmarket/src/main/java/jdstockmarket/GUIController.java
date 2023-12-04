@@ -36,80 +36,209 @@ public class GUIController extends JFrame {
 	
 	// Named constants
 	private static final Color PRIMARY_COLOR = new Color(13, 148, 148); // Teal
-	private static final Color SECONDARY_COLOR = new Color(207, 234, 234); // Blue
 	private static final Color ACCENT_COLOR = new Color(200, 255, 255); // Mint
-	private static final Color TEXT_COLOR = Color.BLACK;
-	protected static final String TIME_SERIES_KEY = "Time Series (5min)";
-	private static final String FILE_NAME = "portfolio.txt";
+	private static final Color TEXT_COLOR = Color.BLACK; // Black
+	protected static final String TIME_SERIES_KEY = "Time Series (5min)"; //Key that holds the stock JSON data from API response
+	private static final String FILE_NAME = "portfolio.txt"; // Txt file that holds portfolio data
 	
 	// Instance variables for managing GUI and API calls
     private StockMarketAPI stockAPI;
+    private CongressStockAPI congressAPI;
+    private StockJSONHandler jsonHandler;
+    // Global JFrame elements
     private JTextField stockSymbolField;
     private JTextArea stockInfoArea;
     private JTextArea portfolioArea;
     private JButton fetchButton;
-    private StockJSONHandler jsonHandler;  
+    private JToggleButton updatePricesToggle;
+    private JButton pelosiButton;
+    private JTextArea pelosiTextArea;
+    
+    
     
     /**
      * Constructor for GUIController.
-     * Initializes instances of StockMarketAPI and JSONHandler.
-     * Sets up the GUI components and their configurations.
      */
     public GUIController() {
+        initializeComponents();
+        setupGUI();
+    }
+    
+    private void initializeComponents() {
         stockAPI = new StockMarketAPI();
+        congressAPI = new CongressStockAPI();
         jsonHandler = new StockJSONHandler();
-        
-     // Setup for GUI JFrame
+
+        stockSymbolField = createStyledTextField(10);
+        stockInfoArea = createStyledTextArea();
+        portfolioArea = createStyledTextArea();
+        pelosiTextArea = createStyledTextArea();
+
+        fetchButton = createStyledButton("Fetch Stock Info");
+        pelosiButton = createStyledButton("Nancy Pelosi ?");
+        updatePricesToggle = new JToggleButton("Off");
+
+        fetchButton.addActionListener(e -> fetchStockInfo());
+        pelosiButton.addActionListener(e -> fetchCongressInfo());
+        updatePricesToggle.addActionListener(e -> updatePortfolioDisplay(updatePricesToggle.isSelected()));
+    }
+    
+    private void setupGUI() {
         setTitle("Stock Market App");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(PRIMARY_COLOR); // Set the background color
-        
-        // Create a panel for the west components
-        JPanel westPanel = createWestPanel();
+        getContentPane().setBackground(PRIMARY_COLOR);
 
-        // Add the west panel to the main frame
-        add(westPanel, BorderLayout.WEST);
-        
-        // Create the stock info and portfolio areas with labels
-        JPanel stockInfoPanel = new JPanel(new BorderLayout());
-        JPanel portfolioPanel = new JPanel(new BorderLayout());
-        
-        // Create and add labels
-        JLabel stockInfoLabel = new JLabel("Stock Information");
-        JLabel portfolioLabel = new JLabel("Your Portfolio");
-        
-        // Set the font to bold with a specific size
-        Font labelFont = new Font("Arial", Font.BOLD, 14); // Adjust the font and size
-        stockInfoLabel.setFont(labelFont);
-        portfolioLabel.setFont(labelFont);
-        
-        // Add padding around the labels
-        stockInfoLabel.setBorder(new EmptyBorder(5, 112, 4, 10)); // Top, left, bottom, right padding
-        portfolioLabel.setBorder(new EmptyBorder(5, 130, 4, 10)); // Adjust values as needed
-        
-        stockInfoPanel.add(stockInfoLabel, BorderLayout.NORTH);
-        stockInfoPanel.setBackground(PRIMARY_COLOR);
-        portfolioPanel.add(portfolioLabel, BorderLayout.NORTH);
-        portfolioPanel.setBackground(PRIMARY_COLOR);
+        add(createWestPanel(), BorderLayout.WEST);
+        add(createCenterAndEastPanel(), BorderLayout.CENTER);
+        add(createSouthWestPanel(), BorderLayout.SOUTH);
 
-        
-        // Create and add the stockInfoArea portfolioArea display
-        stockInfoArea = createStyledTextArea();
-        portfolioArea = createStyledTextArea();
-        
-        // Add stockInfoArea and portfolioArea to their Panels
-        stockInfoPanel.add(new JScrollPane(stockInfoArea), BorderLayout.CENTER);
-        portfolioPanel.add(new JScrollPane(portfolioArea), BorderLayout.CENTER);
-        
-        // Add these panels to the main frame
-        add(stockInfoPanel, BorderLayout.CENTER);
-        add(portfolioPanel, BorderLayout.EAST);
-
-        // Finalizing GUI setup
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+    
+    private JPanel createWestPanel() {
+        JPanel westPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        westPanel.setBackground(PRIMARY_COLOR);
+        westPanel.setBorder(new EmptyBorder(10, 10, 10, 10)); // Padding (T, L, B, R)
+
+        // Constraints for the components
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5); // Margin around components (T, L, B, R)
+
+        // Label for Stock Symbol field
+        JLabel stockSymbolLabel = createStyledLabel("Enter Stock Symbol: ");
+        westPanel.add(stockSymbolLabel, gbc);
+
+        // TextField for Stock Symbol field
+        gbc.gridy++;
+        stockSymbolField = createStyledTextField(10);
+        stockSymbolField.addActionListener(e -> fetchStockInfo());
+        westPanel.add(stockSymbolField, gbc);
+
+        // Fetch Button
+        gbc.gridy++;
+        fetchButton = createStyledButton("Fetch Stock Info");
+        fetchButton.addActionListener(e -> fetchStockInfo());
+        westPanel.add(fetchButton, gbc);
+        
+        // Label for Number of Shares TextField
+        gbc.gridy++;
+        JLabel sharesFieldLabel = createStyledLabel("Enter Share Quantity:");
+        westPanel.add(sharesFieldLabel, gbc);
+
+        // TextField for Number of Shares
+        gbc.gridy++;
+        JTextField sharesField = createStyledTextField(10);
+        sharesField.addActionListener(e -> addStock(sharesField.getText()));
+        westPanel.add(sharesField, gbc);
+
+        // Add Stock Button
+        gbc.gridy++;
+        JButton addStockButton = createStyledButton("Add Stock");
+        addStockButton.addActionListener(e -> addStock(sharesField.getText()));
+        westPanel.add(addStockButton, gbc);
+        
+        // Add Display Porfolio Button
+        gbc.gridy++;
+        JButton displayPortfolioButton = createStyledButton("Display Portfolio");
+        displayPortfolioButton.addActionListener(e -> updatePortfolioDisplay(updatePricesToggle.isSelected()));
+        westPanel.add(displayPortfolioButton, gbc);
+        
+        /// Initialize the toggle button
+        updatePricesToggle = new JToggleButton("Off");
+        
+        // Set static button size to keep from knocking into other frame elements when clicked
+        Dimension buttonSize = new Dimension(50, 30); // Set a fixed size (width, height)
+        updatePricesToggle.setPreferredSize(buttonSize);
+        updatePricesToggle.setMinimumSize(buttonSize);
+        updatePricesToggle.setMaximumSize(buttonSize);
+
+        // Toggle button action listener
+        updatePricesToggle.addActionListener(e -> {
+            if (updatePricesToggle.isSelected()) {
+                updatePricesToggle.setText("On");
+            } else {
+                updatePricesToggle.setText("Off");
+            }
+        });
+        
+        // Label for "Update Prices" button
+        JLabel updatePricesLabel = new JLabel(" Live Portfolio");
+
+        // Add the label and toggle button to the panel
+        gbc.gridx = 0; gbc.gridy = 10; // Set grid position for label
+        westPanel.add(updatePricesLabel, gbc);
+        gbc.gridx = 1; // Adjust grid position for toggle button
+        gbc.insets = new Insets(0, -40, 5, 0); // (T, L, B, R) padding
+        westPanel.add(updatePricesToggle, gbc);
+       
+     
+        return westPanel;
+    }
+    
+    private JPanel createCenterAndEastPanel() {
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBackground(PRIMARY_COLOR);
+
+        // Stock Info Panel
+        JPanel stockInfoPanel = new JPanel(new BorderLayout());
+        JLabel stockInfoLabel = new JLabel("Stock Information");
+        stockInfoLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        stockInfoLabel.setBorder(new EmptyBorder(5, 112, 4, 10));
+        stockInfoPanel.add(stockInfoLabel, BorderLayout.NORTH);
+        stockInfoPanel.add(new JScrollPane(stockInfoArea), BorderLayout.CENTER);
+        stockInfoPanel.setBackground(PRIMARY_COLOR);
+
+        // Portfolio Panel
+        JPanel portfolioPanel = new JPanel(new BorderLayout());
+        JLabel portfolioLabel = new JLabel("Your Portfolio");
+        portfolioLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        portfolioLabel.setBorder(new EmptyBorder(5, 130, 4, 10));
+        portfolioPanel.add(portfolioLabel, BorderLayout.NORTH);
+        portfolioPanel.add(new JScrollPane(portfolioArea), BorderLayout.CENTER);
+        portfolioPanel.setBackground(PRIMARY_COLOR);
+        portfolioPanel.setBorder(new EmptyBorder(0, 0, 0, 15));
+
+        centerPanel.add(stockInfoPanel, BorderLayout.CENTER);
+        centerPanel.add(portfolioPanel, BorderLayout.EAST);
+
+        return centerPanel;
+    }
+    
+    private JPanel createSouthWestPanel() {
+        JPanel southWestPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        southWestPanel.setBackground(PRIMARY_COLOR);
+        southWestPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
+
+        // Constraints for Pelosi Button
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(-5, 15, 5, 722);
+        southWestPanel.add(pelosiButton, gbc);
+
+        // Constraints for Pelosi TextArea
+        gbc.gridy++;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.insets = new Insets(5, 15, 5, 15);
+        
+        // Wrap the pelosiTextArea in a JScrollPane
+        JScrollPane pelosiScrollPane = new JScrollPane(pelosiTextArea);
+        pelosiScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        pelosiScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        southWestPanel.add(pelosiScrollPane, gbc);
+
+        return southWestPanel;
     }
     
     private JButton createStyledButton(String text) {
@@ -162,77 +291,41 @@ public class GUIController extends JFrame {
         textArea.setBorder(BorderFactory.createLineBorder(ACCENT_COLOR, 3));
         return textArea;
     }
-    
-    private JPanel createWestPanel() {
-        JPanel westPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        westPanel.setBackground(PRIMARY_COLOR);
-        westPanel.setBorder(new EmptyBorder(10, 10, 10, 10)); // Padding
-
-        // Constraints for the components
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 5); // Margin around components
-
-        // Label for Stock Symbol
-        JLabel stockSymbolLabel = createStyledLabel("Enter Stock Symbol: ");
-        westPanel.add(stockSymbolLabel, gbc);
-
-        // TextField for Stock Symbol
-        gbc.gridy++;
-        stockSymbolField = createStyledTextField(10);
-        stockSymbolField.addActionListener(e -> fetchStockInfo());
-        westPanel.add(stockSymbolField, gbc);
-
-        // Fetch Button
-        gbc.gridy++;
-        fetchButton = createStyledButton("Fetch Stock Info");
-        fetchButton.addActionListener(e -> fetchStockInfo());
-        westPanel.add(fetchButton, gbc);
-        
-        // Label for Number of Shares TextField
-        gbc.gridy++;
-        JLabel sharesFieldLabel = createStyledLabel("Enter Share Quantity:");
-        westPanel.add(sharesFieldLabel, gbc);
-
-        // TextField for Number of Shares
-        gbc.gridy++;
-        JTextField sharesField = createStyledTextField(10);
-        sharesField.addActionListener(e -> addStock(sharesField.getText()));
-        westPanel.add(sharesField, gbc);
-
-        // Add Stock Button
-        gbc.gridy++;
-        JButton addStockButton = createStyledButton("Add Stock");
-        addStockButton.addActionListener(e -> addStock(sharesField.getText()));
-        westPanel.add(addStockButton, gbc);
-        
-        // Add Display Porfolio Button
-        gbc.gridy++;
-        JButton displayPortfolioButton = createStyledButton("Dispalay Portfolio");
-        displayPortfolioButton.addActionListener(e -> updatePortfolioDisplay());
-        westPanel.add(displayPortfolioButton, gbc);
-
-        return westPanel;
-    }
 
     private void fetchStockInfo() {
     	String stockSymbol = stockSymbolField.getText().toUpperCase();
         try {
             
-        	 JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
+        	JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
             String displayText = jsonHandler.displayStockInfo(stockJSON, stockSymbol);
             stockInfoArea.setText(displayText);
 
 	    } catch (IOException ioe) {
-	        stockInfoArea.setText("\n Error fetching or parsing stock data." + ioe.getMessage());
+	        stockInfoArea.setText("  IOException In fetchStockInfo() -> " + ioe.getMessage() + "\n");
 	    } catch (JSONException je) {
-	        stockInfoArea.setText("\n JSON parsing error: " + je.getMessage());
+	        stockInfoArea.setText("  JSON parsing error: " + je.getMessage() + "\n");
 	    } catch (Exception ex) {
-	        stockInfoArea.setText("\n An unexpected error occurred...that sucks [Exception] > " + ex.getMessage());
+	        stockInfoArea.setText("  An unexpected error occurred...that sucks \n  [Exception] > " + ex.getMessage() + "\n");
 	    }
+    }
+    
+    private void fetchCongressInfo() {
+    	String stockSymbol = stockSymbolField.getText().toUpperCase();
+    	
+    	if (stockSymbol.isEmpty()) {
+    		pelosiTextArea.setText("  Try entering a stock symbol and see what happens?");
+    		return;
+    	}
+    	
+    	try {
+    		
+    		JSONArray stockJSON = jsonHandler.fetchCongressData(congressAPI, stockSymbol);
+    		String displayText = jsonHandler.displayCongressInfo(stockJSON, stockSymbol);
+    		pelosiTextArea.setText(displayText);
+    		pelosiTextArea.setCaretPosition(0);
+    	} catch (IOException ioe) {
+    		
+    	}
     }
 
     private void addStock(String sharesText) {
@@ -246,7 +339,7 @@ public class GUIController extends JFrame {
                 JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
                 int shares = Integer.parseInt(sharesText);
                 
-                if (stockJSON.has("Time Series (5min)")) {
+                if (stockJSON.has(TIME_SERIES_KEY)) {
                 	
                     JSONObject timeSeries = stockJSON.getJSONObject(TIME_SERIES_KEY);
                     ArrayList<String> timeStamps = new ArrayList<>(timeSeries.keySet());
@@ -258,7 +351,7 @@ public class GUIController extends JFrame {
                     
                     PortfolioManager.updatePortfolio(stock);
                     stockInfoArea.append("  Added " + shares + " shares of " + stockSymbol + "\n");
-                    updatePortfolioDisplay();
+                    updatePortfolioDisplay(updatePricesToggle.isSelected());
 
                 } else {
                     stockInfoArea.setText("  Time Series data not available for " + stockSymbol + " right now");
@@ -266,15 +359,27 @@ public class GUIController extends JFrame {
                 
                 
             } catch (NumberFormatException ex) {
-                stockInfoArea.append("  Invalid input: please enter a number of shares\n");
+                stockInfoArea.append("  Invalid input: Please enter a number of shares\n");
             } catch (JSONException je) {
             	stockInfoArea.setText("  Exeption (Action Listener): " + je.getMessage());
             } catch (IOException ioe) {
-				stockInfoArea.append("  Add Stock: IOException: " + ioe.getMessage() + "\n");;
+				stockInfoArea.setText("  Add Stock: IOException: " + ioe.getMessage());
 			}
     }
-
-    public void updatePortfolioDisplay() {
+    
+    public void updatePortfolioDisplay(boolean updatePricesONorOFF) {
+    	// Update portfolio with most recent prices with an API call
+    	try {
+			Portfolio portfolio = PortfolioManager.readPortfolioFromFile();
+			PortfolioManager.updateStockPrices(portfolio, updatePricesONorOFF);
+		} catch (NullPointerException npe) {
+			portfolioArea.setText("  ERROR: Price update failed\n\n" + "  API call limit reached today...\n");
+			return;
+		} catch (Exception e) {
+			portfolioArea.setText(e.getMessage());
+			return;
+		}
+    	
         StringBuilder formattedContent = new StringBuilder();
         DecimalFormat numberFormat = new DecimalFormat("#,##0.00");
 
@@ -289,7 +394,7 @@ public class GUIController extends JFrame {
                     int shares = Integer.parseInt(parts[2]);
                     Double totalValue = shares * price;
                     portfolioTotal += totalValue;
-                    formattedContent.append("  Ticker: ").append(ticker)
+                    formattedContent.append("  Ticker: ").append("[ " + ticker + " ]")
                                     .append(",  Price: $").append(numberFormat.format(price))
                                     .append(",  Shares: ").append(shares)
                                     .append("\n  Stock Value: $").append(numberFormat.format(totalValue))
@@ -319,7 +424,6 @@ public class GUIController extends JFrame {
      * @param args Command line arguments.
      */
     public static void main(String[] args) {
-    	
     	// Set LookAndFeel of UI
     	try {
     	    for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
@@ -336,7 +440,6 @@ public class GUIController extends JFrame {
     	        // handle exception
     	    }
     	}
-
     	
         SwingUtilities.invokeLater(new Runnable() {
             @Override

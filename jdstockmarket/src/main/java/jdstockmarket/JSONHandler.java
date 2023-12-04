@@ -1,5 +1,6 @@
 package jdstockmarket;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -26,6 +27,8 @@ public interface JSONHandler {
      * @return A {@code JSONObject} representing the parsed JSON data.
      */
     abstract JSONObject parseJSON(String jsonData);
+    
+    abstract JSONArray parseJSONArray(String jsonData);
 
     /**
      * Retrieves a value associated with a specified key from a {@code JSONObject}.

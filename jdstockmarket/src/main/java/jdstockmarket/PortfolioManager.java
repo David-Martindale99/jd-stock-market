@@ -1,14 +1,18 @@
 package jdstockmarket;
 
 import java.io.*;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
 import java.util.TreeMap;
+
+import org.json.JSONObject;
 
 
 public class PortfolioManager {
 
     private static final String FILE_NAME = "portfolio.txt";
+    protected static final String TIME_SERIES_KEY = "Time Series (5min)";
 
     public static void updatePortfolio(Stock newStock) {
         Portfolio portfolio = readPortfolioFromFile();
@@ -28,7 +32,7 @@ public class PortfolioManager {
 
     }
 
-    private static Portfolio readPortfolioFromFile() {
+    protected static Portfolio readPortfolioFromFile() {
         File file = new File(FILE_NAME);
         TreeMap<String, Stock> stocks = new TreeMap<>();
 
@@ -79,13 +83,44 @@ public class PortfolioManager {
         }
     }
     
-    // TODO imlement this method 
-    private static Set<String> collectTickersFromPortfolio(Portfolio portfolio) {
-    	return new HashSet<>(portfolio.getStocks().keySet());
+    // API call to fetch current price of a stock and returns price to Double
+    private static Double fetchCurrentPrice(String ticker) {
+    	StockMarketAPI stockAPI = new StockMarketAPI();
+    	StockJSONHandler jsonHandler = new StockJSONHandler();
+    	try {
+			String stockData = stockAPI.fetchLiveStockData(ticker);
+			JSONObject stockJSON = jsonHandler.parseJSON(stockData);
+			
+			if (stockJSON.has(TIME_SERIES_KEY)) {
+	            JSONObject timeSeries = stockJSON.getJSONObject(TIME_SERIES_KEY);
+	            ArrayList<String> timeStamps = new ArrayList<>(timeSeries.keySet());
+	            Collections.sort(timeStamps);
+	            String latestTimeStamp = timeStamps.get(timeStamps.size() - 1);
+	            JSONObject latestData = timeSeries.getJSONObject(latestTimeStamp);
+	            return Double.parseDouble(latestData.getString("4. close"));
+			} else {
+				return null;
+			}
+		} catch (IOException e) {
+			// TODO update exception handling
+			e.printStackTrace();
+			return null;
+		}
+		
     }
     
-    // TODO Implent this method
-    private static void updateStockPrices(Set<String> tickers) {
-    	
+    // Calls the fetchCurrentPrice method to update the poftolio object with up to
+    // date stock prices`
+    protected static void updateStockPrices(Portfolio portfolio, boolean updatePrices) {
+    	if (updatePrices) {
+    		for (Map.Entry<String, Stock> entry : portfolio.getStocks().entrySet()) {
+    			// set each ticker to variable in each iteration
+    			String ticker = entry.getKey();
+    			// Fetch current price for ticker using API
+    			double currentPrice = fetchCurrentPrice(ticker);
+    			entry.getValue().setPrice(currentPrice);
+    		}
+    		writePortfolioToFile(portfolio);
+    	}
     }
 }
