@@ -53,9 +53,7 @@ public class GUIController extends JFrame {
     private JToggleButton updatePricesToggle;
     private JButton pelosiButton;
     private JTextArea pelosiTextArea;
-    
-    
-    
+     
     /**
      * Constructor for GUIController.
      */
@@ -90,7 +88,7 @@ public class GUIController extends JFrame {
         getContentPane().setBackground(PRIMARY_COLOR);
 
         add(createWestPanel(), BorderLayout.WEST);
-        add(createCenterAndEastPanel(), BorderLayout.CENTER);
+        add(createCenterPanel(), BorderLayout.CENTER);
         add(createSouthWestPanel(), BorderLayout.SOUTH);
 
         pack();
@@ -168,7 +166,7 @@ public class GUIController extends JFrame {
             }
         });
         
-        // Label for "Update Prices" button
+        // Label for "Live Portfolio" button
         JLabel updatePricesLabel = new JLabel(" Live Portfolio");
 
         // Add the label and toggle button to the panel
@@ -177,12 +175,19 @@ public class GUIController extends JFrame {
         gbc.gridx = 1; // Adjust grid position for toggle button
         gbc.insets = new Insets(0, -40, 5, 0); // (T, L, B, R) padding
         westPanel.add(updatePricesToggle, gbc);
-       
+        
+        // Add Pelosi Button
+        gbc.gridy = 11;
+        gbc.gridx = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 0, 5); // Margin around component (T, L, B, R)
+        westPanel.add(pelosiButton, gbc);
      
         return westPanel;
     }
     
-    private JPanel createCenterAndEastPanel() {
+    private JPanel createCenterPanel() {
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setBackground(PRIMARY_COLOR);
 
@@ -217,20 +222,12 @@ public class GUIController extends JFrame {
         southWestPanel.setBackground(PRIMARY_COLOR);
         southWestPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
 
-        // Constraints for Pelosi Button
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(-5, 15, 5, 722);
-        southWestPanel.add(pelosiButton, gbc);
-
         // Constraints for Pelosi TextArea
         gbc.gridy++;
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
-        gbc.insets = new Insets(5, 15, 5, 15);
+        gbc.insets = new Insets(-10, 15, 5, 15); // (T, L, B, R)
         
         // Wrap the pelosiTextArea in a JScrollPane
         JScrollPane pelosiScrollPane = new JScrollPane(pelosiTextArea);
@@ -294,6 +291,12 @@ public class GUIController extends JFrame {
 
     private void fetchStockInfo() {
     	String stockSymbol = stockSymbolField.getText().toUpperCase();
+    	
+    	if (stockSymbol.isBlank()) {
+    		stockInfoArea.setText("  Invalid Input: Please enter a stock symbol\n");
+    		return;
+    	}
+    	
         try {
             
         	JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
@@ -334,6 +337,12 @@ public class GUIController extends JFrame {
             	
             	if (stockSymbol.isBlank()) {
             		stockInfoArea.setText("  Invalid Input: Please enter a stock ticker\n");
+            		return;
+            	}
+            	
+            	if (sharesText.isBlank()) {
+            		stockInfoArea.setText("  Invalid Input: Please enter a quantity of shares\n");
+            		return;
             	}
             	
                 JSONObject stockJSON = jsonHandler.fetchStockData(stockAPI, stockSymbol);
@@ -354,16 +363,16 @@ public class GUIController extends JFrame {
                     updatePortfolioDisplay(updatePricesToggle.isSelected());
 
                 } else {
-                    stockInfoArea.setText("  Time Series data not available for " + stockSymbol + " right now");
+                    stockInfoArea.append("  Time Series data not available for " + stockSymbol + " right now\n");
                 }
                 
                 
             } catch (NumberFormatException ex) {
-                stockInfoArea.append("  Invalid input: Please enter a number of shares\n");
+                stockInfoArea.setText("  NumberFormatException: \n  " + ex.getMessage());
             } catch (JSONException je) {
-            	stockInfoArea.setText("  Exeption (Action Listener): " + je.getMessage());
+            	stockInfoArea.setText("  JSONExeption: \n  " + je.getMessage());
             } catch (IOException ioe) {
-				stockInfoArea.setText("  Add Stock: IOException: " + ioe.getMessage());
+				stockInfoArea.setText("  Add Stock: IOException:\n   " + ioe.getMessage());
 			}
     }
     
@@ -401,12 +410,10 @@ public class GUIController extends JFrame {
                                     .append("\n\n");
                 }
             }
-            
             // Check for empty portfolio and notify user if empty
             if (formattedContent.isEmpty()) {
             	formattedContent.append("  You have no stock holdings\n");
             }
-            
             // Diaplay total Portfolio value to user
             formattedContent.append("\n  Portfolio Value: $").append(numberFormat.format(portfolioTotal));
             portfolioArea.setText(formattedContent.toString());
@@ -415,7 +422,6 @@ public class GUIController extends JFrame {
             portfolioArea.append(ioe.getMessage());
         }
     }
-
     
     /**
      * Entry point of the application.
@@ -440,7 +446,6 @@ public class GUIController extends JFrame {
     	        // handle exception
     	    }
     	}
-    	
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {

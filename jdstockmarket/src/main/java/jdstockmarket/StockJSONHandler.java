@@ -134,7 +134,7 @@ public class StockJSONHandler implements JSONHandler {
             formattedInfo.append("  Nancy Pelosi has recently traded " + stockSymbol + " !\n\n");
             formattedInfo.append(nancyPelosiTrades);
         } else {
-            formattedInfo.append("  Nancy Pelosi has not recently traded " + stockSymbol + ",\n  but here are the 20 most recent congressional trades:\n\n");
+            formattedInfo.append("  Nancy Pelosi has not recently traded " + stockSymbol + "\n  Here are the 20 most recent congressional trades:\n\n");
             for (int i = 0; i < Math.min(20, jsonArray.length()); i++) {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
                 appendTradeInfo(formattedInfo, jsonObject);
