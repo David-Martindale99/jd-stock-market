@@ -35,10 +35,8 @@ public class InstructionDialog extends JDialog {
         JScrollPane scrollPane = new JScrollPane(instructionText);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Add a close button
-        JButton closeButton = new JButton("Close");
-        closeButton.addActionListener(e -> dispose());
-        add(closeButton, BorderLayout.SOUTH);
+        // Prevent window from being resized
+        setResizable(false);
 
         // Set the dialog location relative to the parent frame
         setLocationRelativeTo(getParent());

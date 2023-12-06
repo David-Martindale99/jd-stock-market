@@ -106,8 +106,6 @@ public class GUIController extends JFrame {
         add(createCenterPanel(), BorderLayout.CENTER);
         add(createSouthWestPanel(), BorderLayout.SOUTH);
         
-        setIconImage(icon.getImage());
-        
         setResizable(false); // Prevent resizing of the JFrame
 
         pack();
@@ -242,8 +240,7 @@ public class GUIController extends JFrame {
         southWestPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
 
         // Load and resize the ImageIcon
-        ImageIcon originalIcon = new ImageIcon(getClass().getResource(LOGO_FILE_NAME));
-        Image image = originalIcon.getImage();
+        Image image = icon.getImage();
         Image resizedImage = image.getScaledInstance(550, 250, Image.SCALE_SMOOTH); //(width, height)
         ImageIcon resizedIcon = new ImageIcon(resizedImage);
 
