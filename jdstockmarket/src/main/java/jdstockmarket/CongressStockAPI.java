@@ -1,6 +1,7 @@
 package jdstockmarket;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 
 import org.json.JSONArray;
 
@@ -23,33 +24,44 @@ public class CongressStockAPI {
 	
 	
 	public String fetchCongressTrades(String stockSymbol) throws IOException {
-	    try {
-	        String url = "https://api.quiverquant.com/beta/historical/congresstrading/" + stockSymbol;
-	        Request request = new Request.Builder()
-	                .url(url)
-	                .get()
-	                .addHeader("Accept", "application/json")
-	                .addHeader("Authorization", "Bearer " + API_KEY)
-	                .build();
+	    int maxRetries = 3; // Maximum number of retries
+	    int retryDelay = 2000; // Delay between retries in milliseconds (2 seconds)
 
-	        try (Response response = client.newCall(request).execute()) {
-	            if (!response.isSuccessful()) {
-	                throw new IOException("Error: Response failed...\n" + response);
+	    for (int attempt = 0; attempt < maxRetries; attempt++) {
+	        try {
+	            String url = "https://api.quiverquant.com/beta/historical/congresstrading/" + stockSymbol;
+	            Request request = new Request.Builder()
+	                    .url(url)
+	                    .get()
+	                    .addHeader("Accept", "application/json")
+	                    .addHeader("Authorization", "Bearer " + API_KEY)
+	                    .build();
+
+	            try (Response response = client.newCall(request).execute()) {
+	                if (!response.isSuccessful()) {
+	                    throw new IOException("Error: Response failed...\n" + response);
+	                }
+
+	                String responseBody = response.body().string();
+	                if (responseBody.startsWith("[")) {
+	                    JSONArray jsonArray = new JSONArray(responseBody);
+	                    return jsonArray.toString();
+	                } else {
+	                    throw new IOException("Unexpected response format: " + responseBody);
+	                }
 	            }
-
-	            String responseBody = response.body().string();
-	            if (responseBody.startsWith("[")) {
-	            	// Parse the response as a JSON array
-	                JSONArray jsonArray = new JSONArray(responseBody);
-	                // Covert array to string
-	                return jsonArray.toString();
-	            } else {
-	                throw new IOException("Unexpected response format: " + responseBody);
+	        } catch (SocketTimeoutException ste) {
+	            if (attempt == maxRetries - 1) {
+	                throw ste; // Rethrow the exception on the last attempt
+	            }
+	            try {
+	                Thread.sleep(retryDelay); // Wait before retrying
+	            } catch (InterruptedException ie) {
+	                Thread.currentThread().interrupt(); // Restore the interrupted status
+	                throw new IOException("Interrupted during retry delay", ie);
 	            }
 	        }
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        return "Error fetching data";
 	    }
+	    return "Error fetching data"; // Return error message if all retries fail
 	}
 }

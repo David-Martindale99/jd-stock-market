@@ -88,7 +88,7 @@ public class StockJSONHandler implements JSONHandler {
             String todaysLow = latestData.getString("3. low");
             
             return formatStockInfo(stockSymbol, mostRecentPrice, todaysHigh, todaysLow);
-        } else if (stockJSON.has("Information")){        
+        } else if (stockJSON.has("Information")){ 
             return " API request limit reached today...\n";
         } else if (stockJSON.keySet().isEmpty()) {
         	return " ERROR: API returned an empty object\n";
@@ -117,6 +117,11 @@ public class StockJSONHandler implements JSONHandler {
         StringBuilder formattedInfo = new StringBuilder();
         boolean nancyPelosiTraded = false;
         StringBuilder nancyPelosiTrades = new StringBuilder();
+        
+        if (jsonArray.isEmpty()) {
+        	formattedInfo.append("  Error with Input: Please enter a valid stock symbol or try again");
+        	return formattedInfo.toString();
+        }
 
         // Check if Nancy Pelosi has any trades
         for (int i = 0; i < jsonArray.length(); i++) {
@@ -140,7 +145,7 @@ public class StockJSONHandler implements JSONHandler {
                 appendTradeInfo(formattedInfo, jsonObject);
             }
         }
-
+        
         return formattedInfo.toString();
     }
 
@@ -152,7 +157,7 @@ public class StockJSONHandler implements JSONHandler {
         String range = jsonObject.getString("Range");
         String house = jsonObject.getString("House");
         String party = jsonObject.getString("Party");
-
+        
         builder.append("  [Representative]: ").append(representative + "\n")
                .append("  Party: ").append(party + "\n")
                .append("  House: ").append(house + "\n")

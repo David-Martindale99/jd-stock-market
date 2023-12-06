@@ -40,6 +40,7 @@ public class GUIController extends JFrame {
 	private static final Color TEXT_COLOR = Color.BLACK; // Black
 	protected static final String TIME_SERIES_KEY = "Time Series (5min)"; //Key that holds the stock JSON data from API response
 	private static final String FILE_NAME = "portfolio.txt"; // Txt file that holds portfolio data
+	private static final String LOGO_FILE_NAME = "/stockLogo.png";
 	
 	// Instance variables for managing GUI and API calls
     private StockMarketAPI stockAPI;
@@ -53,6 +54,7 @@ public class GUIController extends JFrame {
     private JToggleButton updatePricesToggle;
     private JButton pelosiButton;
     private JTextArea pelosiTextArea;
+    private ImageIcon icon;
      
     /**
      * Constructor for GUIController.
@@ -60,6 +62,9 @@ public class GUIController extends JFrame {
     public GUIController() {
         initializeComponents();
         setupGUI();
+        // Show instruction dialog
+        InstructionDialog instructionDialog = new InstructionDialog(this);
+        instructionDialog.setVisible(true);
     }
     
     private void initializeComponents() {
@@ -79,10 +84,20 @@ public class GUIController extends JFrame {
         fetchButton.addActionListener(e -> fetchStockInfo());
         pelosiButton.addActionListener(e -> fetchCongressInfo());
         updatePricesToggle.addActionListener(e -> updatePortfolioDisplay(updatePricesToggle.isSelected()));
+        
+        try {
+			icon = new ImageIcon(getClass().getResource(LOGO_FILE_NAME));
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        if (icon.getImageLoadStatus() != MediaTracker.COMPLETE) {
+            System.out.println("Failed to load logo image");
+        }
     }
     
     private void setupGUI() {
-        setTitle("Stock Market App");
+        setTitle("JD Stock Market");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         getContentPane().setBackground(PRIMARY_COLOR);
@@ -90,6 +105,10 @@ public class GUIController extends JFrame {
         add(createWestPanel(), BorderLayout.WEST);
         add(createCenterPanel(), BorderLayout.CENTER);
         add(createSouthWestPanel(), BorderLayout.SOUTH);
+        
+        setIconImage(icon.getImage());
+        
+        setResizable(false); // Prevent resizing of the JFrame
 
         pack();
         setLocationRelativeTo(null);
@@ -222,21 +241,41 @@ public class GUIController extends JFrame {
         southWestPanel.setBackground(PRIMARY_COLOR);
         southWestPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
 
+        // Load and resize the ImageIcon
+        ImageIcon originalIcon = new ImageIcon(getClass().getResource(LOGO_FILE_NAME));
+        Image image = originalIcon.getImage();
+        Image resizedImage = image.getScaledInstance(550, 250, Image.SCALE_SMOOTH); //(width, height)
+        ImageIcon resizedIcon = new ImageIcon(resizedImage);
+
+        // Create a JLabel with the resized ImageIcon
+        JLabel logoLabel = new JLabel(resizedIcon);
+
         // Constraints for Pelosi TextArea
-        gbc.gridy++;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
-        gbc.insets = new Insets(-10, 15, 5, 15); // (T, L, B, R)
-        
-        // Wrap the pelosiTextArea in a JScrollPane
+        gbc.insets = new Insets(-10, 15, 5, 18);
+
         JScrollPane pelosiScrollPane = new JScrollPane(pelosiTextArea);
         pelosiScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         pelosiScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         southWestPanel.add(pelosiScrollPane, gbc);
 
+        // Constraints for Logo Label
+        gbc.gridx = 1; // Position to the right of Pelosi TextArea
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 1.0; // Logo to grow in size
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.CENTER; // Align to the top, if needed
+        gbc.insets = new Insets(-20, -195, -20, -165); // Top, Left, Bottom, Right padding
+        southWestPanel.add(logoLabel, gbc);
+
         return southWestPanel;
     }
+
     
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
@@ -277,6 +316,8 @@ public class GUIController extends JFrame {
     private JTextArea createStyledTextArea() {
         JTextArea textArea = new JTextArea(15, 30);
         textArea.setEditable(false);
+        textArea.setLineWrap(true); // Enable line wrapping
+        textArea.setWrapStyleWord(true); // Wrap lines at word boundaries
         
         // Creating a less saturated blue color
         float[] hsbValues = Color.RGBtoHSB(207, 234, 234, null);
@@ -395,6 +436,18 @@ public class GUIController extends JFrame {
         try {
             List<String> lines = Files.readAllLines(Paths.get(FILE_NAME));
             Double portfolioTotal = 0.0;
+            // Calculate the total portfolio value first
+            for (String line : lines) {
+                String[] parts = line.split(",");
+                if (parts.length == 3) {
+                    double price = Double.parseDouble(parts[1]);
+                    int shares = Integer.parseInt(parts[2]);
+                    portfolioTotal += shares * price;
+                }
+            }
+            // Append the total portfolio value at the top
+            formattedContent.append("  Porfolio Value: $").append(numberFormat.format(portfolioTotal)).append("\n\n");
+            // Append details of each stock
             for (String line : lines) {
                 String[] parts = line.split(",");
                 if (parts.length == 3) {
@@ -402,7 +455,6 @@ public class GUIController extends JFrame {
                     double price = Double.parseDouble(parts[1]);
                     int shares = Integer.parseInt(parts[2]);
                     Double totalValue = shares * price;
-                    portfolioTotal += totalValue;
                     formattedContent.append("  Ticker: ").append("[ " + ticker + " ]")
                                     .append(",  Price: $").append(numberFormat.format(price))
                                     .append(",  Shares: ").append(shares)
@@ -411,12 +463,11 @@ public class GUIController extends JFrame {
                 }
             }
             // Check for empty portfolio and notify user if empty
-            if (formattedContent.isEmpty()) {
-            	formattedContent.append("  You have no stock holdings\n");
+            if (lines.isEmpty()) {
+                formattedContent.append("  You have no stock holdings\n");
             }
-            // Diaplay total Portfolio value to user
-            formattedContent.append("\n  Portfolio Value: $").append(numberFormat.format(portfolioTotal));
             portfolioArea.setText(formattedContent.toString());
+            portfolioArea.setCaretPosition(0);
         } catch (IOException ioe) {
             portfolioArea.setText("Error loading portfolio data...\n");
             portfolioArea.append(ioe.getMessage());
