@@ -9,6 +9,35 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+/**
+ * The {@code CongressStockAPI} class is responsible for fetching Congressional stock trade data.
+ * This class interfaces with the Quiver Quant API to retrieve historical trading data for specific stock symbols.
+ *
+ * Key Features:
+ * - Connects to the Quiver Quant API using OkHttp for HTTP requests.
+ * - Handles network operations, such as sending requests and receiving responses.
+ * - Implements retry logic to handle network timeouts or connectivity issues.
+ *
+ * Usage:
+ * An instance of this class can be used to fetch data about Congressional stock trades for a given stock symbol.
+ * It handles the construction and execution of HTTP requests to the Quiver Quant API and processes the received JSON data.
+ *
+ * The method {@code fetchCongressTrades} performs the primary operation of fetching the trade data. It includes error handling
+ * for various scenarios like network timeouts, unsuccessful responses, and unexpected data formats.
+ *
+ * Error Handling:
+ * The class includes robust error handling to manage network-related exceptions, including retries for timeout exceptions.
+ * In case of a network timeout, the method retries the request up to a maximum number of times before throwing an exception.
+ *
+ * Note: This class requires an API key for authentication with the Quiver Quant API.
+ * 
+ * @author David Martindale
+ * @author Jamshaid Ali
+ * @version 2.0 (7 December 2023)
+ * @see OkHttpClient
+ * @see Request
+ * @see Response
+ */
 public class CongressStockAPI {
 
     // Quiver API key for authentication

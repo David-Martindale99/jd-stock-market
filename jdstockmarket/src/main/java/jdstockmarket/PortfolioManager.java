@@ -8,7 +8,36 @@ import java.util.TreeMap;
 
 import org.json.JSONObject;
 
-
+/**
+ * The {@code PortfolioManager} class provides functionality to manage a stock portfolio.
+ * It includes methods for updating the portfolio with new stocks, reading the portfolio from a file, 
+ * writing the updated portfolio back to a file, and updating stock prices in the portfolio.
+ *
+ * Key Functionalities:
+ * - {@code updatePortfolio(Stock)}: Adds a new stock to the portfolio or updates existing stock details.
+ * - {@code readPortfolioFromFile()}: Reads the portfolio data from a file and constructs a Portfolio object.
+ * - {@code writePortfolioToFile(Portfolio)}: Writes the Portfolio object's data back to a file.
+ * - {@code fetchCurrentPrice(String)}: Fetches the current price of a stock from the StockMarketAPI.
+ * - {@code updateStockPrices(Portfolio, boolean)}: Updates the prices of stocks in the portfolio if the updatePrices flag is true.
+ *
+ * Usage:
+ * This class is used to interact with the portfolio's persistence layer (e.g., a text file) and to update stock information.
+ * It serves as an intermediary between the application's GUI and the data layer, ensuring data consistency and handling I/O operations.
+ *
+ * Error Handling:
+ * The class includes error handling for I/O operations and API interactions. 
+ * It prints error messages to the console in case of exceptions, ensuring that the application can recover from common errors like file access issues.
+ *
+ * Note: The class assumes a specific format for the portfolio data file (ticker, price, shares) and requires an existing StockMarketAPI and StockJSONHandler setup.
+ * 
+ * @author David Martindale
+ * @author Jamshaid Ali
+ * @version 2.0 (7 December 2023)
+ * @see Portfolio
+ * @see Stock
+ * @see StockMarketAPI
+ * @see StockJSONHandler
+ */
 public class PortfolioManager {
 
     private static final String FILE_NAME = "portfolio.txt";

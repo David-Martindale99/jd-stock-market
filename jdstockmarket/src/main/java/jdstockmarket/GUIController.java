@@ -16,18 +16,31 @@ import java.util.List;
 import org.json.*;
 
 /**
- * The {@code GUIController} class provides a graphical user interface (GUI) for interacting
- * with a stock market API and managing a user's stock portfolio.
- * It extends {@code JFrame} to utilize windowing components.
- * 
- * This class manages instances of {@link StockMarketAPI} and {@link Portfolio}
- * to fetch live stock data and track the user's portfolio respectively.
- * 
+ * The {@code GUIController} class serves as the central interface for the JD Stock Market application.
+ * This class extends {@link JFrame}, utilizing windowing components to provide a user-friendly graphical interface.
+ *
+ * Key Features:
+ * - Interacts with the {@link StockMarketAPI} and {@link CongressStockAPI} to retrieve real-time stock market data.
+ * - Manages a user's stock portfolio through integration with {@link Portfolio}.
+ * - Displays live updates of stock prices and portfolio values.
+ * - Provides functionality to add new stocks to a user's portfolio and track their performance.
+ *
+ * The GUI layout includes text fields for input (e.g., stock symbols, share quantities), text areas for displaying stock and portfolio information,
+ * and buttons for various actions like fetching stock information, adding stocks, and toggling live portfolio updates.
+ *
+ * Usage:
+ * Users can enter stock symbols to fetch current stock data or enter stock symbols and share quantities to add stocks to their portfolio.
+ * The application also features a section for viewing the impact of notable figures (e.g., Nancy Pelosi) on stock performance, offering unique insights.
+ *
+ * Error Handling:
+ * The application includes robust error handling to manage issues like invalid inputs, network problems, or API limitations, ensuring a smooth user experience.
+ *
  * @author David Martindale
  * @author Jamshaid Ali
- * @version 1.0 (17 October 2023)
+ * @version 2.0 (7 December 2023)
  * @see JFrame
  * @see StockMarketAPI
+ * @see CongressStockAPI
  * @see Portfolio
  */
 public class GUIController extends JFrame {
@@ -58,6 +71,8 @@ public class GUIController extends JFrame {
      
     /**
      * Constructor for GUIController.
+     * Initializes the components and sets up the graphical user interface.
+     * It also displays an instruction dialog upon startup.
      */
     public GUIController() {
         initializeComponents();
@@ -67,6 +82,11 @@ public class GUIController extends JFrame {
         instructionDialog.setVisible(true);
     }
     
+    /**
+     * Initializes all the components used in the GUI.
+     * This includes creating and setting up buttons, text areas, text fields, and other GUI elements.
+     * It also sets up action listeners for interactive components.
+     */
     private void initializeComponents() {
         stockAPI = new StockMarketAPI();
         congressAPI = new CongressStockAPI();
@@ -96,6 +116,11 @@ public class GUIController extends JFrame {
         }
     }
     
+    /**
+     * Sets up the overall layout and design of the GUI.
+     * This method organizes the various panels and components within the JFrame.
+     * It sets the window properties like size, visibility, and default close operation.
+     */
     private void setupGUI() {
         setTitle("JD Stock Market");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -104,7 +129,7 @@ public class GUIController extends JFrame {
 
         add(createWestPanel(), BorderLayout.WEST);
         add(createCenterPanel(), BorderLayout.CENTER);
-        add(createSouthWestPanel(), BorderLayout.SOUTH);
+        add(createSouthPanel(), BorderLayout.SOUTH);
         
         setResizable(false); // Prevent resizing of the JFrame
 
@@ -113,6 +138,12 @@ public class GUIController extends JFrame {
         setVisible(true);
     }
     
+    /**
+     * Creates and configures the West panel of the GUI.
+     * This panel includes components for stock symbol input, stock fetching, and portfolio management.
+     * 
+     * @return JPanel The configured West panel.
+     */
     private JPanel createWestPanel() {
         JPanel westPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -204,6 +235,12 @@ public class GUIController extends JFrame {
         return westPanel;
     }
     
+    /**
+     * Creates and configures the Center panel of the GUI.
+     * This panel is designated for displaying stock information and user portfolio.
+     * 
+     * @return JPanel The configured Center panel.
+     */
     private JPanel createCenterPanel() {
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setBackground(PRIMARY_COLOR);
@@ -233,11 +270,17 @@ public class GUIController extends JFrame {
         return centerPanel;
     }
     
-    private JPanel createSouthWestPanel() {
-        JPanel southWestPanel = new JPanel(new GridBagLayout());
+    /**
+     * Creates and configures the South panel of the GUI.
+     * This panel includes additional information and branding elements.
+     * 
+     * @return JPanel The configured SouthWest panel.
+     */
+    private JPanel createSouthPanel() {
+        JPanel southPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        southWestPanel.setBackground(PRIMARY_COLOR);
-        southWestPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
+        southPanel.setBackground(PRIMARY_COLOR);
+        southPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
 
         // Load and resize the ImageIcon
         Image image = icon.getImage();
@@ -258,7 +301,7 @@ public class GUIController extends JFrame {
         JScrollPane pelosiScrollPane = new JScrollPane(pelosiTextArea);
         pelosiScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         pelosiScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        southWestPanel.add(pelosiScrollPane, gbc);
+        southPanel.add(pelosiScrollPane, gbc);
 
         // Constraints for Logo Label
         gbc.gridx = 1; // Position to the right of Pelosi TextArea
@@ -268,12 +311,18 @@ public class GUIController extends JFrame {
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.CENTER; // Align to the top, if needed
         gbc.insets = new Insets(-20, -195, -20, -165); // Top, Left, Bottom, Right padding
-        southWestPanel.add(logoLabel, gbc);
+        southPanel.add(logoLabel, gbc);
 
-        return southWestPanel;
+        return southPanel;
     }
 
-    
+    /**
+     * Creates and returns a styled JButton with specified text.
+     * The button is styled according to the application theme.
+     * 
+     * @param text The text to display on the button.
+     * @return JButton A styled button with the specified text.
+     */
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
         button.setBackground(ACCENT_COLOR);
@@ -296,6 +345,13 @@ public class GUIController extends JFrame {
         return button;
     }
     
+    /**
+     * Creates and returns a styled JTextField with a specified column size.
+     * The text field is styled according to the application theme.
+     * 
+     * @param columns The number of columns for the text field.
+     * @return JTextField A styled text field with the specified column size.
+     */
     private JTextField createStyledTextField(int columns) {
         JTextField textField = new JTextField(columns);
         textField.setBorder(BorderFactory.createLineBorder(ACCENT_COLOR, 2));
@@ -304,12 +360,25 @@ public class GUIController extends JFrame {
         return textField;
     }
 
+    /**
+     * Creates and returns a styled JLabel with specified text.
+     * The label is styled according to the application theme.
+     * 
+     * @param text The text to display on the label.
+     * @return JLabel A styled label with the specified text.
+     */
     private JLabel createStyledLabel(String text) {
         JLabel label = new JLabel(text);
         label.setForeground(TEXT_COLOR);
         return label;
     }
     
+    /**
+     * Creates and returns a styled JTextArea.
+     * The text area is configured for display purposes and is non-editable.
+     * 
+     * @return JTextArea A styled, non-editable text area.
+     */
     private JTextArea createStyledTextArea() {
         JTextArea textArea = new JTextArea(15, 30);
         textArea.setEditable(false);
@@ -327,6 +396,10 @@ public class GUIController extends JFrame {
         return textArea;
     }
 
+    /**
+     * Fetches and displays information about a stock based on the entered stock symbol.
+     * Retrieves data from the StockMarketAPI and displays it in the stockInfoArea text area.
+     */
     private void fetchStockInfo() {
     	String stockSymbol = stockSymbolField.getText().toUpperCase();
     	
@@ -350,6 +423,11 @@ public class GUIController extends JFrame {
 	    }
     }
     
+    /**
+     * Fetches and displays information related to Congressional stock activities.
+     * Specifically designed to show Nancy Pelosi's stock transactions.
+     * Utilizes the CongressStockAPI for data retrieval.
+     */
     private void fetchCongressInfo() {
     	String stockSymbol = stockSymbolField.getText().toUpperCase();
     	
@@ -369,6 +447,12 @@ public class GUIController extends JFrame {
     	}
     }
 
+    /**
+     * Adds a stock to the user's portfolio based on the entered stock symbol and share quantity.
+     * Retrieves the latest stock price and updates the portfolio accordingly.
+     * 
+     * @param sharesText The text representing the number of shares to add.
+     */
     private void addStock(String sharesText) {
             try {
             	String stockSymbol = stockSymbolField.getText().toUpperCase();
@@ -414,6 +498,12 @@ public class GUIController extends JFrame {
 			}
     }
     
+    /**
+     * Updates the display of the user's portfolio.
+     * Optionally updates the stock prices in the portfolio based on the toggle button state.
+     * 
+     * @param updatePricesONorOFF A boolean indicating whether to update prices (true) or not (false).
+     */
     public void updatePortfolioDisplay(boolean updatePricesONorOFF) {
     	// Update portfolio with most recent prices with an API call
     	try {
