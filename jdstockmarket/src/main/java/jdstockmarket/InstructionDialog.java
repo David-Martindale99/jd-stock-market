@@ -1,6 +1,8 @@
 package jdstockmarket;
 
 import javax.swing.*;
+import javax.swing.text.DefaultCaret;
+
 import java.awt.*;
 
 /**
@@ -55,6 +57,7 @@ public class InstructionDialog extends JDialog {
         instructionText.setEditable(false);
         instructionText.setWrapStyleWord(true);
         instructionText.setLineWrap(true);
+        instructionText.setCaret(new DefaultCaret() { @Override public boolean isVisible() { return false; }});
 
         // Add a scroll pane to the text area
         JScrollPane scrollPane = new JScrollPane(instructionText);
